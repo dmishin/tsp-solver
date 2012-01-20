@@ -1,0 +1,19 @@
+Travelling Salesman Problem (TSP) solver,
+in pure Python.
+
+This project provides pure Python code for searching sub-optimal solutions to the TSP. 
+Additionally, utility scripts for visualization of results are provided.
+
+Solver library does not requires any libraries, utility scripts require:
+ - Numpy
+ - PIL (Python imageing library)
+ - Matplotlib
+
+Libraries:
+ src/greedy_tsp.py : The TSP solver library
+ src/image2point_cloud.py : Utility library, used by tsp.py
+
+Applications (run them with Python and add option -h or --help)
+ src/tsp.py : Test application. Generates TSP solutions for random problems.
+ src/pickle2svg.py : Visualization appliation, converts solution files, produced by tsp.py to the SVG vector images.
+ 

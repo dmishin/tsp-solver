@@ -1,0 +1,9 @@
+Installation is not intended.
+
+Change to the src directory and run:
+
+#sample:
+python tsp.py
+
+#more detailed information:
+python tsp.py --help
