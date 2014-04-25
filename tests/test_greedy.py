@@ -20,26 +20,27 @@ def make_dist_matrix( n, default, ijd_tuples ):
     return dist
 
 def make_test_case( solver ):
+    """Reuse the same test case for 2 different solver functions"""
     class TestGreedy( TestCase ):
         def test_empty_graph(self):
             distances = []
-            vertices = greedy.solve_tsp( distances )
+            vertices = solver( distances )
             self.assertListEqual( vertices, [] )
 
         def test_single_vertes(self):
-            vs = greedy.solve_tsp( [[1]] )
+            vs = solver( [[1]] )
             self.assertListEqual( vs, [0] )
 
         def test_two_vertices(self):
             dist = [[0, 1],
                     [1, 0]]
-            vs = greedy.solve_tsp( dist )
+            vs = solver( dist )
             self.assertListEqual( vs, [0,1] )
 
         def test_three_vertices(self):
             #Make a simple matrix with 2 short paths: 0->2 and 2->1
             D = make_dist_matrix(3, 1000, [(0,2,5), (2,1,1)])
-            vs = greedy.solve_tsp( D )
+            vs = solver( D )
             self.assertListEqual( vs, [0,2,1] )
 
     return TestGreedy
