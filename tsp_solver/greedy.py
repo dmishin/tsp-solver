@@ -1,7 +1,16 @@
+from __future__ import print_function, division
 ################################################################################
 # A simple algorithm for solving the Travelling Salesman Problem
 # Finds a suboptimal solution
 ################################################################################
+if "xrange" not in globals():
+    #py3
+    xrange = range
+else:
+    #py2
+    def next(x): return x.next()
+    
+
 def optimize_solution( distances, connections ):
     """Tries to optimize solution, found by the greedy algorithm"""
     N = len(connections)
@@ -63,7 +72,7 @@ def solve_tsp( distances, optim_steps=3 ):
     if N == 0: return []
     if N == 1: return [0]
     for row in distances:
-        if len(row) != N: raise ValueError, "Matrix is not square"
+        if len(row) != N: raise ValueError( "Matrix is not square")
 
     #State of the TSP solver algorithm.
     node_valency = [2] * N #Initially, each node has 2 sticky ends
@@ -75,8 +84,8 @@ def solve_tsp( distances, optim_steps=3 ):
         segments = [ [i] for i in xrange(N) ]
   
         def pairs_by_dist():
-            print "#### generating vertex pairs"
-            pairs = [None] * (N*(N-1)/2)
+            print( "#### generating vertex pairs")
+            pairs = [None] * (N*(N-1)//2)
             idx = 0
             for i in xrange(N):
                 i_n = i*N    
@@ -84,13 +93,13 @@ def solve_tsp( distances, optim_steps=3 ):
                 for j in xrange(i+1,N):
                     pairs[idx] = (dist_i[j],i_n + j) #for the economy of memory, store I and J packed.
                     idx += 1
-            print "#### sorting pairs by distance"
+            print( "#### sorting pairs by distance")
             pairs.sort()
             return pairs
 
         def nearest_pairs( sorted_pairs ):
             for d, i_j in sorted_pairs:
-                i = i_j / N
+                i = i_j // N
                 if not node_valency[i] : continue
                 j = i_j % N
                 if not node_valency[j] or (segments[i] is segments[j]): 
@@ -98,9 +107,9 @@ def solve_tsp( distances, optim_steps=3 ):
                 yield i, j
 
         pairs_gen = iter( nearest_pairs(pairs_by_dist()) )
-        print "#### joining segments"
+        print( "#### joining segments")
         for itr in xrange(N-1):
-            i,j = pairs_gen.next()
+            i,j = next(pairs_gen)
             node_valency[i] -= 1
             node_valency[j] -= 1
             connections[i].append(j)
@@ -118,9 +127,9 @@ def solve_tsp( distances, optim_steps=3 ):
     join_segments()
 
     for passn in range(optim_steps):
-        #print "Optimization pass", passn
+        #print( "Optimization pass", passn)
         nopt, dtotal = optimize_solution( distances, connections )
-        #print "Done %d optimizations, total reduction %g"%(nopt, dtotal)
+        #print( "Done %d optimizations, total reduction %g"%(nopt, dtotal))
         if nopt == 0:
             break #Don't do useless optimization steps
 
@@ -138,7 +147,7 @@ def solve_tsp_numpy( distances, optim_steps=3 ):
     if N == 0: return []
     if N == 1: return [0]
     for row in distances:
-        if len(row) != N: raise ValueError, "Matrix is not square"
+        if len(row) != N: raise ValueError( "Matrix is not square")
 
     #State of the TSP solver algorithm.
     node_valency = numpy.zeros( N, dtype = 'i1' )
@@ -151,8 +160,8 @@ def solve_tsp_numpy( distances, optim_steps=3 ):
         #segments of nodes. Initially, each segment contains only 1 node
         segments = [ [i] for i in xrange(N) ]
         def pairs_by_dist_np():
-            print "#### generating vertex pairs, numpy version"
-            pairs = numpy.zeros( (N*(N-1)/2, ), dtype=('f4, i2, i2') )
+            print( "#### generating vertex pairs, numpy version")
+            pairs = numpy.zeros( (N*(N-1)//2, ), dtype=('f4, i2, i2') )
 
             idx = 0
             for i in xrange(N):
@@ -161,7 +170,7 @@ def solve_tsp_numpy( distances, optim_steps=3 ):
                 pairs[idx:(idx+row_size)] = [ (dist_i[j], i, j)
                                               for j in xrange(i+1, N) ]
                 idx += row_size
-            print "#### sorting pairs by distance"
+            print( "#### sorting pairs by distance")
             pairs.sort(order=["f1"]) #sort by the first field
             return pairs
 
@@ -173,9 +182,9 @@ def solve_tsp_numpy( distances, optim_steps=3 ):
                     yield i, j
 
         pairs_gen = iter( nearest_pairs_np(pairs_by_dist_np()) )
-        print "#### joining segments"
+        print( "#### joining segments")
         for itr in xrange(N-1):
-            i,j = pairs_gen.next()
+            i,j = next(pairs_gen)
             node_valency[i] -= 1
             node_valency[j] -= 1
             connections[i].append(j)
@@ -193,7 +202,7 @@ def solve_tsp_numpy( distances, optim_steps=3 ):
     join_segments()
 
     for passn in range(optim_steps):
-        #print "Optimization pass", passn
+        #print( "Optimization pass", passn)
         nopt, dtotal = optimize_solution( distances, connections )
         #print "Done %d optimizations, total reduction %g"%(nopt, dtotal)
         if nopt == 0:
