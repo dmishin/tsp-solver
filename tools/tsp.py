@@ -2,7 +2,15 @@ from __future__ import with_statement
 import pickle
 import numpy as np
 import math
-from greedy_tsp import *
+from tsp_solver.greedy import *
+
+try:
+    import psyco
+    psyco.full()
+except:
+    pass
+
+
 ################################################################################
 # Point cloud generators
 ################################################################################

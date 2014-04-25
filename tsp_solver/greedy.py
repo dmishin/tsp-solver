@@ -2,12 +2,6 @@
 # A simple algorithm for solving the Travelling Salesman Problem
 # Finds a suboptimal solution
 ################################################################################
-try:
-    import psyco
-    psyco.full()
-except:
-    pass
-
 def optimize_solution( distances, connections ):
     """Tries to optimize solution, found by the greedy algorithm"""
     N = len(connections)
@@ -34,16 +28,20 @@ def optimize_solution( distances, connections ):
                 connections[path[d]].remove(path[c])
                 connections[path[d]].append(path[b])
                 path[:] = restore_path( connections )
-    print "Done %d optimizations, total reduction %g"%(optimizations, d_total)
+    
+    return optimizations, d_total
         
 def restore_path( connections ):
     """Takes array of connections and returns a path.
-    connections is array of lists with 1 or 2 elements.
+    Connections is array of lists with 1 or 2 elements.
     These elements are indices of teh vertices, connected to this vertex
+    Guarantees that first index < last index
     """
     #there are 2 nodes with valency 1 - start and end. Get them.
     start, end = [ idx for idx, conn in enumerate(connections)
                    if len(conn)==1 ]
+    if start > end:
+        start, end = end, start
     path = [start]
     prev_point = None
     cur_point = start
@@ -55,11 +53,15 @@ def restore_path( connections ):
         path.append(next_point)
         prev_point, cur_point = cur_point, next_point
     return path
+
     
 def solve_tsp( distances, optim_steps=3 ):
     """Given a distance matrix, finds a solution for the TSP problem.
-    Returns list of vertex indices"""
+    Returns list of vertex indices. 
+    Guarantees that the first index is lower than the last"""
     N = len(distances)
+    if N == 0: return []
+    if N == 1: return [0]
     for row in distances:
         if len(row) != N: raise ValueError, "Matrix is not square"
 
@@ -116,8 +118,11 @@ def solve_tsp( distances, optim_steps=3 ):
     join_segments()
 
     for passn in range(optim_steps):
-        print "Optimization pass", passn
-        optimize_solution( distances, connections )
+        #print "Optimization pass", passn
+        nopt, dtotal = optimize_solution( distances, connections )
+        #print "Done %d optimizations, total reduction %g"%(nopt, dtotal)
+        if nopt == 0:
+            break #Don't do useless optimization steps
 
     path = restore_path( connections )
     assert( len(path) == N )
@@ -130,6 +135,8 @@ def solve_tsp_numpy( distances, optim_steps=3 ):
     import numpy
 
     N = len(distances)
+    if N == 0: return []
+    if N == 1: return [0]
     for row in distances:
         if len(row) != N: raise ValueError, "Matrix is not square"
 
@@ -186,8 +193,11 @@ def solve_tsp_numpy( distances, optim_steps=3 ):
     join_segments()
 
     for passn in range(optim_steps):
-        print "Optimization pass", passn
-        optimize_solution( distances, connections )
+        #print "Optimization pass", passn
+        nopt, dtotal = optimize_solution( distances, connections )
+        #print "Done %d optimizations, total reduction %g"%(nopt, dtotal)
+        if nopt == 0:
+            break #Don't do useless optimization steps
 
     path = restore_path( connections )
     assert( len(path) == N )
