@@ -1,4 +1,5 @@
 from __future__ import print_function, division
+from itertools import islice
 ################################################################################
 # A simple algorithm for solving the Travelling Salesman Problem
 # Finds a suboptimal solution
@@ -105,26 +106,26 @@ def solve_tsp( distances, optim_steps=3 ):
                     continue
                 yield i, j
 
-        pairs_gen = iter( nearest_pairs(pairs_by_dist(N, distances)) )
+        pairs_gen = nearest_pairs(pairs_by_dist(N, distances)) 
         _join_segments( N, pairs_gen, node_valency, connections, segments )
 
     join_segments()
 
+    return _restore_optimized_path( distances, connections, optim_steps )
+
+
+def _restore_optimized_path( distances, connections, optim_steps ):
     for passn in range(optim_steps):
-        #print( "Optimization pass", passn)
         nopt, dtotal = optimize_solution( distances, connections )
-        #print( "Done %d optimizations, total reduction %g"%(nopt, dtotal))
         if nopt == 0:
-            break #Don't do useless optimization steps
+            break
 
     path = restore_path( connections )
-    assert( len(path) == N )
     return path
 
 
 def _join_segments(N, pairs_gen, node_valency, connections, segments ):
-    for itr in xrange(N-1):
-        i,j = next(pairs_gen)
+    for i,j in islice( pairs_gen, N-1 ):
         node_valency[i] -= 1
         node_valency[j] -= 1
         connections[i].append(j)

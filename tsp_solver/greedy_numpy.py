@@ -1,5 +1,5 @@
 import numpy
-from tsp_solver.greedy import optimize_solution, restore_path, _join_segments
+from tsp_solver.greedy import optimize_solution, restore_path, _join_segments, _restore_optimized_path
 if "xrange" not in globals():
     #py3
     xrange = range
@@ -49,17 +49,8 @@ def solve_tsp( distances, optim_steps=3 ):
                    not (segments[i] is segments[j]): 
                     yield i, j
 
-        pairs_gen = iter( nearest_pairs_np(pairs_by_dist_np(N, distances)) )
+        pairs_gen = nearest_pairs_np(pairs_by_dist_np(N, distances))
         _join_segments(N, pairs_gen, node_valency, connections, segments )
     join_segments()
 
-    for passn in range(optim_steps):
-        #print( "Optimization pass", passn)
-        nopt, dtotal = optimize_solution( distances, connections )
-        #print "Done %d optimizations, total reduction %g"%(nopt, dtotal)
-        if nopt == 0:
-            break #Don't do useless optimization steps
-
-    path = restore_path( connections )
-    assert( len(path) == N )
-    return path
+    return _restore_optimized_path( distances, connections, optim_steps )

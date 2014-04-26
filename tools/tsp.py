@@ -1,8 +1,9 @@
-from __future__ import with_statement
+from __future__ import with_statement, print_function
 import pickle
 import numpy as np
 import math
-from tsp_solver.greedy import *
+#from tsp_solver.greedy import *
+from tsp_solver.greedy_numpy import solve_tsp
 
 try:
     import psyco
@@ -40,8 +41,8 @@ def image_points( N, src_image ):
     try:
         p = img_file2points(N, src_image)
         return p[:,1],p[:,0]
-    except IOError, err:
-        print "Error reading file %s: %s"%(src_image, err)
+    except IOError as err:
+        print( "Error reading file %s: %s"%(src_image, err))
         exit(2)
 ################################################################################
 # Main application code
@@ -77,10 +78,10 @@ if __name__ == '__main__':
 
     N = options.num_points
     if N < 2:
-        print "Need at least 2 points"
+        print ("Need at least 2 points")
         exit(1)
     if N > 5000:
-        print "Probably, number of points is too big. Try below 5000."
+        print ("Probably, number of points is too big. Try below 5000.")
 
     IMAGE_PREFIX = "image:"
     if options.pattern == "spot":
@@ -92,20 +93,20 @@ if __name__ == '__main__':
     elif options.pattern.startswith(IMAGE_PREFIX):
         x,y = image_points(N, options.pattern[len(IMAGE_PREFIX):])
     else:
-        print "Unknown pattern:%s"%(options.pattern)
+        print ("Unknown pattern:%s"%(options.pattern))
         exit(1)
 
-    print "Solving sample TSP problem for %d points"%(N)
-    path = solve_tsp_numpy( make_dist_matrix(x,y) )
-    print "Solved"
+    print ("Solving sample TSP problem for %d points"%(N))
+    path = solve_tsp( make_dist_matrix(x,y) )
+    print ("Solved")
 
     if options.output:
         try:
             with file( options.output, "w") as fl:
                 pickle.dump( (x[path],y[path]), fl )
-                print "Saved file %s"%(options.output)
-        except IOError, err:
-            print "IO exception:", err
+                print ("Saved file %s"%(options.output))
+        except IOError as err:
+            print ("IO exception:", err)
             exit(2)
 
     if options.show_plot or not options.output:
