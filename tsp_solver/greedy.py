@@ -63,6 +63,19 @@ def restore_path( connections ):
         prev_point, cur_point = cur_point, next_point
     return path
 
+def pairs_by_dist(N, distances):
+    pairs = [None] * (N*(N-1)//2)
+    idx = 0
+    for i in xrange(N):
+        i_n = i*N    
+        dist_i = distances[i]
+        for j in xrange(i+1,N):
+            pairs[idx] = (dist_i[j],i_n + j) #for the economy of memory, store I and J packed.
+            idx += 1
+    pairs.sort()
+
+    return pairs
+
     
 def solve_tsp( distances, optim_steps=3 ):
     """Given a distance matrix, finds a solution for the TSP problem.
@@ -83,20 +96,6 @@ def solve_tsp( distances, optim_steps=3 ):
         #segments of nodes. Initially, each segment contains only 1 node
         segments = [ [i] for i in xrange(N) ]
   
-        def pairs_by_dist():
-            print( "#### generating vertex pairs")
-            pairs = [None] * (N*(N-1)//2)
-            idx = 0
-            for i in xrange(N):
-                i_n = i*N    
-                dist_i = distances[i]
-                for j in xrange(i+1,N):
-                    pairs[idx] = (dist_i[j],i_n + j) #for the economy of memory, store I and J packed.
-                    idx += 1
-            print( "#### sorting pairs by distance")
-            pairs.sort()
-            return pairs
-
         def nearest_pairs( sorted_pairs ):
             for d, i_j in sorted_pairs:
                 i = i_j // N
@@ -106,24 +105,9 @@ def solve_tsp( distances, optim_steps=3 ):
                     continue
                 yield i, j
 
-        pairs_gen = iter( nearest_pairs(pairs_by_dist()) )
-        print( "#### joining segments")
-        for itr in xrange(N-1):
-            i,j = next(pairs_gen)
-            node_valency[i] -= 1
-            node_valency[j] -= 1
-            connections[i].append(j)
-            connections[j].append(i)
-            #join the segments
-            seg_i = segments[i]
-            seg_j = segments[j]
-            if len(seg_j) > len(seg_i):
-                seg_i, seg_j = seg_j, seg_i
-                i, j = j, i
-            for node_idx in seg_j:
-                segments[node_idx] = seg_i
-            seg_i.extend(seg_j)
-    
+        pairs_gen = iter( nearest_pairs(pairs_by_dist(N, distances)) )
+        _join_segments( N, pairs_gen, node_valency, connections, segments )
+
     join_segments()
 
     for passn in range(optim_steps):
@@ -137,78 +121,20 @@ def solve_tsp( distances, optim_steps=3 ):
     assert( len(path) == N )
     return path
 
-def solve_tsp_numpy( distances, optim_steps=3 ):
-    """Given a distance matrix, finds a solution for the TSP problem.
-    Returns list of vertex indices.
-    Version that uses Numpy - consumes less memory and works faster."""
-    import numpy
 
-    N = len(distances)
-    if N == 0: return []
-    if N == 1: return [0]
-    for row in distances:
-        if len(row) != N: raise ValueError( "Matrix is not square")
-
-    #State of the TSP solver algorithm.
-    node_valency = numpy.zeros( N, dtype = 'i1' )
-    node_valency += 2 #Initially, each node has 2 sticky ends
-
-    #for each node, stores 1 or 2 connected nodes
-    connections = [[] for i in xrange(N)] 
-
-    def join_segments():
-        #segments of nodes. Initially, each segment contains only 1 node
-        segments = [ [i] for i in xrange(N) ]
-        def pairs_by_dist_np():
-            print( "#### generating vertex pairs, numpy version")
-            pairs = numpy.zeros( (N*(N-1)//2, ), dtype=('f4, i2, i2') )
-
-            idx = 0
-            for i in xrange(N):
-                row_size = N-i-1
-                dist_i = distances[i]
-                pairs[idx:(idx+row_size)] = [ (dist_i[j], i, j)
-                                              for j in xrange(i+1, N) ]
-                idx += row_size
-            print( "#### sorting pairs by distance")
-            pairs.sort(order=["f1"]) #sort by the first field
-            return pairs
-
-        def nearest_pairs_np( sorted_pairs ):
-            for d, i, j in sorted_pairs:
-                if node_valency[i] and \
-                   node_valency[j] and \
-                   not (segments[i] is segments[j]): 
-                    yield i, j
-
-        pairs_gen = iter( nearest_pairs_np(pairs_by_dist_np()) )
-        print( "#### joining segments")
-        for itr in xrange(N-1):
-            i,j = next(pairs_gen)
-            node_valency[i] -= 1
-            node_valency[j] -= 1
-            connections[i].append(j)
-            connections[j].append(i)
-            #join the segments
-            seg_i = segments[i]
-            seg_j = segments[j]
-            if len(seg_j) > len(seg_i):
-                seg_i, seg_j = seg_j, seg_i
-                i, j = j, i
-            for node_idx in seg_j:
-                segments[node_idx] = seg_i
-            seg_i.extend(seg_j)
-    
-    join_segments()
-
-    for passn in range(optim_steps):
-        #print( "Optimization pass", passn)
-        nopt, dtotal = optimize_solution( distances, connections )
-        #print "Done %d optimizations, total reduction %g"%(nopt, dtotal)
-        if nopt == 0:
-            break #Don't do useless optimization steps
-
-    path = restore_path( connections )
-    assert( len(path) == N )
-    return path
-
+def _join_segments(N, pairs_gen, node_valency, connections, segments ):
+    for itr in xrange(N-1):
+        i,j = next(pairs_gen)
+        node_valency[i] -= 1
+        node_valency[j] -= 1
+        connections[i].append(j)
+        connections[j].append(i)
+        #join the segments
+        seg_i = segments[i]
+        seg_j = segments[j]
+        if len(seg_j) > len(seg_i):
+            seg_i, seg_j = seg_j, seg_i
+            i, j = j, i
+        for node_idx in seg_j:
+            segments[node_idx] = seg_i
+        seg_i.extend(seg_j)
