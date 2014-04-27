@@ -78,6 +78,15 @@ def pairs_by_dist(N, distances):
     return pairs
 
     
+def nearest_pairs( N, node_valency, segments, sorted_pairs ):
+    for d, i_j in sorted_pairs:
+        i = i_j // N
+        if not node_valency[i] : continue
+        j = i_j % N
+        if not node_valency[j] or (segments[i] is segments[j]): 
+            continue
+        yield i, j
+
 def solve_tsp( distances, optim_steps=3 ):
     """Given a distance matrix, finds a solution for the TSP problem.
     Returns list of vertex indices. 
@@ -96,17 +105,7 @@ def solve_tsp( distances, optim_steps=3 ):
     def join_segments():
         #segments of nodes. Initially, each segment contains only 1 node
         segments = [ [i] for i in xrange(N) ]
-  
-        def nearest_pairs( sorted_pairs ):
-            for d, i_j in sorted_pairs:
-                i = i_j // N
-                if not node_valency[i] : continue
-                j = i_j % N
-                if not node_valency[j] or (segments[i] is segments[j]): 
-                    continue
-                yield i, j
-
-        pairs_gen = nearest_pairs(pairs_by_dist(N, distances)) 
+        pairs_gen = nearest_pairs(N, node_valency, segments, pairs_by_dist(N, distances)) 
         _join_segments( N, pairs_gen, node_valency, connections, segments )
 
     join_segments()

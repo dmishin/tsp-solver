@@ -1,5 +1,6 @@
 import numpy
 from tsp_solver.greedy import optimize_solution, restore_path, _join_segments, _restore_optimized_path
+
 if "xrange" not in globals():
     #py3
     xrange = range
@@ -19,6 +20,13 @@ def pairs_by_dist_np(N, distances):
         idx += row_size
     pairs.sort(order=["f0"]) #sort by the first field
     return pairs
+
+def nearest_pairs_np( N, node_valency, segments, sorted_pairs ):
+    for d, i, j in sorted_pairs:
+        if node_valency[i] and \
+           node_valency[j] and \
+           not (segments[i] is segments[j]): 
+            yield i, j
 
 def solve_tsp( distances, optim_steps=3 ):
     """Given a distance matrix, finds a solution for the TSP problem.
@@ -41,15 +49,7 @@ def solve_tsp( distances, optim_steps=3 ):
     def join_segments():
         #segments of nodes. Initially, each segment contains only 1 node
         segments = [ [i] for i in xrange(N) ]
-
-        def nearest_pairs_np( sorted_pairs ):
-            for d, i, j in sorted_pairs:
-                if node_valency[i] and \
-                   node_valency[j] and \
-                   not (segments[i] is segments[j]): 
-                    yield i, j
-
-        pairs_gen = nearest_pairs_np(pairs_by_dist_np(N, distances))
+        pairs_gen = nearest_pairs_np(N, node_valency, segments, pairs_by_dist_np(N, distances))
         _join_segments(N, pairs_gen, node_valency, connections, segments )
     join_segments()
 
