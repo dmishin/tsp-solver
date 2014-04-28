@@ -49,10 +49,9 @@ def restore_path( connections ):
     Guarantees that first index < last index
     """
     #there are 2 nodes with valency 1 - start and end. Get them.
-    start, end = [ idx for idx, conn in enumerate(connections)
-                   if len(conn)==1 ]
-    if start > end:
-        start, end = end, start
+    start, end = [idx 
+                  for idx, conn in enumerate(connections)
+                  if len(conn)==1 ]
     path = [start]
     prev_point = None
     cur_point = start
@@ -66,18 +65,16 @@ def restore_path( connections ):
     return path
 
 def pairs_by_dist(N, distances):
-    pairs = [None] * (N*(N-1)//2)
+    #Sort coordinate pairs by distance
+    indices = [None] * (N*(N-1)//2)
     idx = 0
     for i in xrange(N):
-        i_n = i*N    
-        dist_i = distances[i]
         for j in xrange(i+1,N):
-            pairs[idx] = (dist_i[j],i_n + j) #for the economy of memory, store I and J packed.
+            indices[idx] = (i,j)
             idx += 1
-    pairs.sort(key = lambda d_ij: d_ij[0])
-    for _, i_j in pairs:
-        yield (i_j // N), (i_j % N)
-        
+            
+    indices.sort(key = lambda ij: distances[ij[0]][ij[1]])
+    return indices
     
 def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist ):
     """Given a distance matrix, finds a solution for the TSP problem.
@@ -95,11 +92,11 @@ def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist ):
     #for each node, stores 1 or 2 connected nodes
     connections = [[] for i in xrange(N)] 
 
-    def join_segments():
+    def join_segments(sorted_pairs):
         #segments of nodes. Initially, each segment contains only 1 node
         segments = [ [i] for i in xrange(N) ]
   
-        def filter_pairs( sorted_pairs ):
+        def filtered_pairs():
             #Generate sequence of 
             for ij in sorted_pairs:
                 i,j = ij
@@ -109,14 +106,12 @@ def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist ):
                     continue
                 yield ij
 
-        pairs_gen = filter_pairs(pairs_by_dist(N, distances)) 
-
-        for i,j in islice( pairs_gen, N-1 ):
+        for i,j in islice( filtered_pairs(), N-1 ):
             node_valency[i] -= 1
             node_valency[j] -= 1
             connections[i].append(j)
             connections[j].append(i)
-            #join the segments
+            #Merge segment J into segment I.
             seg_i = segments[i]
             seg_j = segments[j]
             if len(seg_j) > len(seg_i):
@@ -126,7 +121,7 @@ def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist ):
                 segments[node_idx] = seg_i
             seg_i.extend(seg_j)
 
-    join_segments()
+    join_segments(pairs_by_dist(N, distances))
 
     for passn in range(optim_steps):
         nopt, dtotal = optimize_solution( distances, connections )
