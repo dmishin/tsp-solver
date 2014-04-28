@@ -60,10 +60,9 @@ class TestPairsByDist( TestCase ):
         N = 3
         pbd = list( greedy.pairs_by_dist( N, dist ) )
         #Returns indices of node pairs, sorted by distance
-        def index( i, j): return N*i+j
-        expected = [ (2, index(0,1)),
-                     (3, index(0,2)),
-                     (5, index(1,2)) ]
+        expected = [ (0,1),
+                     (0,2),
+                     (1,2) ]
         self.assertListEqual( pbd, expected )
         
     def test_pairs_by_dist_numpy(self):
@@ -73,11 +72,11 @@ class TestPairsByDist( TestCase ):
         N = 3
         pbd = list( greedy_numpy.pairs_by_dist_np( N, dist ) )
 
-        expected = [ (2.0, 0,1),
-                     (3.0, 0,2),
-                     (5.0, 1,2) ]
+        expected = [ (0,1),
+                     (0,2),
+                     (1,2) ]
         self.assertEqual( len(expected), len( pbd ) ) #lists must have same lenght
-        for idx, d_i_j in enumerate(expected):
-            d1, i1, j1 = pbd[idx]
-            self.assertEqual( d_i_j, (d1,i1,j1), "List item %d must be the same"%(idx) )
+        for idx, i_j in enumerate(expected):
+            i1, j1 = pbd[idx]
+            self.assertEqual( i_j, (i1,j1), "List item %d must be the same"%(idx) )
         

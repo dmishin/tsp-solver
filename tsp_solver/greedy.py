@@ -1,5 +1,6 @@
 from __future__ import print_function, division
 from itertools import islice
+from array import array as pyarray
 ################################################################################
 # A simple algorithm for solving the Travelling Salesman Problem
 # Finds a suboptimal solution
@@ -9,7 +10,7 @@ if "xrange" not in globals():
     xrange = range
 else:
     #py2
-    def next(x): return x.next()
+    pass
     
 
 def optimize_solution( distances, connections ):
@@ -73,12 +74,12 @@ def pairs_by_dist(N, distances):
         for j in xrange(i+1,N):
             pairs[idx] = (dist_i[j],i_n + j) #for the economy of memory, store I and J packed.
             idx += 1
-    pairs.sort()
-
-    return pairs
-
+    pairs.sort(key = lambda d_ij: d_ij[0])
+    for _, i_j in pairs:
+        yield (i_j // N), (i_j % N)
+        
     
-def solve_tsp( distances, optim_steps=3 ):
+def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist ):
     """Given a distance matrix, finds a solution for the TSP problem.
     Returns list of vertex indices. 
     Guarantees that the first index is lower than the last"""
@@ -89,7 +90,8 @@ def solve_tsp( distances, optim_steps=3 ):
         if len(row) != N: raise ValueError( "Matrix is not square")
 
     #State of the TSP solver algorithm.
-    node_valency = [2] * N #Initially, each node has 2 sticky ends
+    node_valency = pyarray('i', [2])*N #Initially, each node has 2 sticky ends
+    
     #for each node, stores 1 or 2 connected nodes
     connections = [[] for i in xrange(N)] 
 
@@ -97,16 +99,17 @@ def solve_tsp( distances, optim_steps=3 ):
         #segments of nodes. Initially, each segment contains only 1 node
         segments = [ [i] for i in xrange(N) ]
   
-        def nearest_pairs( sorted_pairs ):
-            for d, i_j in sorted_pairs:
-                i = i_j // N
-                if not node_valency[i] : continue
-                j = i_j % N
-                if not node_valency[j] or (segments[i] is segments[j]): 
+        def filter_pairs( sorted_pairs ):
+            #Generate sequence of 
+            for ij in sorted_pairs:
+                i,j = ij
+                if not node_valency[i] or\
+                        not node_valency[j] or\
+                        (segments[i] is segments[j]): 
                     continue
-                yield i, j
+                yield ij
 
-        pairs_gen = nearest_pairs(pairs_by_dist(N, distances)) 
+        pairs_gen = filter_pairs(pairs_by_dist(N, distances)) 
         _join_segments( N, pairs_gen, node_valency, connections, segments )
 
     join_segments()
