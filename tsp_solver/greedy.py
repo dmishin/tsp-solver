@@ -110,14 +110,24 @@ def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist ):
                 yield ij
 
         pairs_gen = filter_pairs(pairs_by_dist(N, distances)) 
-        _join_segments( N, pairs_gen, node_valency, connections, segments )
+
+        for i,j in islice( pairs_gen, N-1 ):
+            node_valency[i] -= 1
+            node_valency[j] -= 1
+            connections[i].append(j)
+            connections[j].append(i)
+            #join the segments
+            seg_i = segments[i]
+            seg_j = segments[j]
+            if len(seg_j) > len(seg_i):
+                seg_i, seg_j = seg_j, seg_i
+                i, j = j, i
+            for node_idx in seg_j:
+                segments[node_idx] = seg_i
+            seg_i.extend(seg_j)
 
     join_segments()
 
-    return _restore_optimized_path( distances, connections, optim_steps )
-
-
-def _restore_optimized_path( distances, connections, optim_steps ):
     for passn in range(optim_steps):
         nopt, dtotal = optimize_solution( distances, connections )
         if nopt == 0:
@@ -125,20 +135,3 @@ def _restore_optimized_path( distances, connections, optim_steps ):
 
     path = restore_path( connections )
     return path
-
-
-def _join_segments(N, pairs_gen, node_valency, connections, segments ):
-    for i,j in islice( pairs_gen, N-1 ):
-        node_valency[i] -= 1
-        node_valency[j] -= 1
-        connections[i].append(j)
-        connections[j].append(i)
-        #join the segments
-        seg_i = segments[i]
-        seg_j = segments[j]
-        if len(seg_j) > len(seg_i):
-            seg_i, seg_j = seg_j, seg_i
-            i, j = j, i
-        for node_idx in seg_j:
-            segments[node_idx] = seg_i
-        seg_i.extend(seg_j)
