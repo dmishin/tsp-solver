@@ -2,7 +2,7 @@ from __future__ import with_statement, print_function
 import pickle
 import numpy as np
 import math
-#from tsp_solver.greedy import *
+#from tsp_solver.greedy import solve_tsp
 from tsp_solver.greedy_numpy import solve_tsp
 
 try:
@@ -27,23 +27,22 @@ def ring_points( N ):
 
 def spot_points( N ):
     """Random points, forming a spot"""
-    x = np.random.normal(size=N)    
-    y = np.random.normal(size=N)
-    return x,y
+    xy = np.random.normal(size=(2,N))
+    return xy
 
 def box_points( N ):
-    x = np.random.rand( N )
-    y = np.random.rand( N )
-    return x,y
+    xy = np.random.rand( (2,N) )
+    return xy
 
 def image_points( N, src_image ):
     from image2point_cloud import img_file2points
     try:
         p = img_file2points(N, src_image)
-        return p[:,1],p[:,0]
+        return p
     except IOError as err:
         print( "Error reading file %s: %s"%(src_image, err))
         exit(2)
+    
 ################################################################################
 # Main application code
 ################################################################################
@@ -78,32 +77,31 @@ if __name__ == '__main__':
 
     N = options.num_points
     if N < 2:
-        print ("Need at least 2 points")
-        exit(1)
+        parser.error ("Need at least 2 points")
     if N > 5000:
-        print ("Probably, number of points is too big. Try below 5000.")
+        print ("Warning: probably, number of points is too big. Try below 5000.")
 
     IMAGE_PREFIX = "image:"
     if options.pattern == "spot":
-        x,y = spot_points( N )
+        xy = spot_points( N )
     elif options.pattern == "ring":
-        x,y = ring_points( N )
+        xy = ring_points( N )
     elif options.pattern == "box":
-        x,y = box_points( N )
+        xy = box_points( N )
     elif options.pattern.startswith(IMAGE_PREFIX):
-        x,y = image_points(N, options.pattern[len(IMAGE_PREFIX):])
+        xy = image_points(N, options.pattern[len(IMAGE_PREFIX):])
     else:
         print ("Unknown pattern:%s"%(options.pattern))
         exit(1)
 
     print ("Solving sample TSP problem for %d points"%(N))
-    path = solve_tsp( make_dist_matrix(x,y) )
+    path = solve_tsp( make_dist_matrix(xy[0,:],xy[1,:]) )
     print ("Solved")
 
     if options.output:
         try:
             with file( options.output, "w") as fl:
-                pickle.dump( (x[path],y[path]), fl )
+                np.save( fl, xy[:,path])
                 print ("Saved file %s"%(options.output))
         except IOError as err:
             print ("IO exception:", err)
@@ -111,5 +109,5 @@ if __name__ == '__main__':
 
     if options.show_plot or not options.output:
         import matplotlib.pyplot as pp
-        pp.plot( x[path], -y[path], 'k-' )
+        pp.plot( xy[0,path], xy[1,path], 'k-' )
         pp.show()
