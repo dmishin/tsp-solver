@@ -43,6 +43,21 @@ def make_test_case( solver ):
             vs = solver( D )
             self.assertListEqual( vs, [0,2,1] )
 
+        def test_long_path( self ):
+            D = make_dist_matrix(10, 1000, 
+                                 [( 0,2,1),
+                                  ( 2,4,1),
+                                  ( 4,6,1),
+                                  ( 6,8,1),
+                                  ( 8,9,1),
+                                  ( 9,7,1),
+                                  ( 7,5,1),
+                                  ( 5,3,1),
+                                  ( 3,1,1) ])
+            vs = solver(D)
+            self.assertListEqual( vs, [0,2,4,6,8,9,7,5,3,1] )
+                           
+
     return TestGreedy
 
 class TestGreedySimple( make_test_case( greedy.solve_tsp ) ):
