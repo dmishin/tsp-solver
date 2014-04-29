@@ -1,5 +1,6 @@
 from __future__ import print_function, division
 from itertools import islice
+from array import array as pyarray
 ################################################################################
 # A simple algorithm for solving the Travelling Salesman Problem
 # Finds a suboptimal solution
@@ -9,7 +10,7 @@ if "xrange" not in globals():
     xrange = range
 else:
     #py2
-    def next(x): return x.next()
+    pass
     
 
 def optimize_solution( distances, connections ):
@@ -48,10 +49,9 @@ def restore_path( connections ):
     Guarantees that first index < last index
     """
     #there are 2 nodes with valency 1 - start and end. Get them.
-    start, end = [ idx for idx, conn in enumerate(connections)
-                   if len(conn)==1 ]
-    if start > end:
-        start, end = end, start
+    start, end = [idx 
+                  for idx, conn in enumerate(connections)
+                  if len(conn)==1 ]
     path = [start]
     prev_point = None
     cur_point = start
@@ -65,29 +65,18 @@ def restore_path( connections ):
     return path
 
 def pairs_by_dist(N, distances):
-    pairs = [None] * (N*(N-1)//2)
+    #Sort coordinate pairs by distance
+    indices = [None] * (N*(N-1)//2)
     idx = 0
     for i in xrange(N):
-        i_n = i*N    
-        dist_i = distances[i]
         for j in xrange(i+1,N):
-            pairs[idx] = (dist_i[j],i_n + j) #for the economy of memory, store I and J packed.
+            indices[idx] = (i,j)
             idx += 1
-    pairs.sort()
-
-    return pairs
-
+            
+    indices.sort(key = lambda ij: distances[ij[0]][ij[1]])
+    return indices
     
-def nearest_pairs( N, node_valency, segments, sorted_pairs ):
-    for d, i_j in sorted_pairs:
-        i = i_j // N
-        if not node_valency[i] : continue
-        j = i_j % N
-        if not node_valency[j] or (segments[i] is segments[j]): 
-            continue
-        yield i, j
-
-def solve_tsp( distances, optim_steps=3 ):
+def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist ):
     """Given a distance matrix, finds a solution for the TSP problem.
     Returns list of vertex indices. 
     Guarantees that the first index is lower than the last"""
@@ -98,22 +87,42 @@ def solve_tsp( distances, optim_steps=3 ):
         if len(row) != N: raise ValueError( "Matrix is not square")
 
     #State of the TSP solver algorithm.
-    node_valency = [2] * N #Initially, each node has 2 sticky ends
+    node_valency = pyarray('i', [2])*N #Initially, each node has 2 sticky ends
+    
     #for each node, stores 1 or 2 connected nodes
     connections = [[] for i in xrange(N)] 
 
-    def join_segments():
+    def join_segments(sorted_pairs):
         #segments of nodes. Initially, each segment contains only 1 node
         segments = [ [i] for i in xrange(N) ]
-        pairs_gen = nearest_pairs(N, node_valency, segments, pairs_by_dist(N, distances)) 
-        _join_segments( N, pairs_gen, node_valency, connections, segments )
+  
+        def filtered_pairs():
+            #Generate sequence of 
+            for ij in sorted_pairs:
+                i,j = ij
+                if not node_valency[i] or\
+                        not node_valency[j] or\
+                        (segments[i] is segments[j]): 
+                    continue
+                yield ij
 
-    join_segments()
+        for i,j in islice( filtered_pairs(), N-1 ):
+            node_valency[i] -= 1
+            node_valency[j] -= 1
+            connections[i].append(j)
+            connections[j].append(i)
+            #Merge segment J into segment I.
+            seg_i = segments[i]
+            seg_j = segments[j]
+            if len(seg_j) > len(seg_i):
+                seg_i, seg_j = seg_j, seg_i
+                i, j = j, i
+            for node_idx in seg_j:
+                segments[node_idx] = seg_i
+            seg_i.extend(seg_j)
 
-    return _restore_optimized_path( distances, connections, optim_steps )
+    join_segments(pairs_by_dist(N, distances))
 
-
-def _restore_optimized_path( distances, connections, optim_steps ):
     for passn in range(optim_steps):
         nopt, dtotal = optimize_solution( distances, connections )
         if nopt == 0:
@@ -121,20 +130,3 @@ def _restore_optimized_path( distances, connections, optim_steps ):
 
     path = restore_path( connections )
     return path
-
-
-def _join_segments(N, pairs_gen, node_valency, connections, segments ):
-    for i,j in islice( pairs_gen, N-1 ):
-        node_valency[i] -= 1
-        node_valency[j] -= 1
-        connections[i].append(j)
-        connections[j].append(i)
-        #join the segments
-        seg_i = segments[i]
-        seg_j = segments[j]
-        if len(seg_j) > len(seg_i):
-            seg_i, seg_j = seg_j, seg_i
-            i, j = j, i
-        for node_idx in seg_j:
-            segments[node_idx] = seg_i
-        seg_i.extend(seg_j)

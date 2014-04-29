@@ -4,17 +4,17 @@ from random import random as rand
 
 def img2pointarray( N, arr):
     """convert array with values from 0 to 255 to a point cloud"""
-    w,h = arr.shape
-    rval = []
+    h,w = arr.shape
+    rval = np.zeros( (2,N) )
     for i in xrange(N):
         while True:
             x = rand()*w
             y = rand()*h
             clr = rand()*255
-            if arr[int(x),int(y)] < clr:
+            if arr[int(y),int(x)] < clr:
                 break
-        rval.append((x,y))
-    return np.vstack(rval)
+        rval[:,i] = (x,h-y)
+    return rval
 
 def img_file2points(N, image_file):
     image = Image.open( image_file )
