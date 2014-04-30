@@ -5,7 +5,9 @@ test2:
 	python2 -m unittest discover -s tests
 
 perf:
-	PYTHONPATH=.:$(PYTHONPATH) python3 tools/perftest.py
-	PYTHONPATH=.:$(PYTHONPATH) python2 tools/perftest.py
+	PYTHONPATH=.:$(PYTHONPATH) python tests/perftest.py
 
-.PHONY: test test2 perf
+deb:
+	fakeroot checkinstall --pkgname=python-tsp-solver --pkgversion=0.1 --install=no -y python setup.py install
+
+.PHONY: test test2 perf deb

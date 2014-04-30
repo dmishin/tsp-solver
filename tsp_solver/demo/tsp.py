@@ -53,7 +53,7 @@ def make_dist_matrix(x, y):
     yy = np.vstack( (y,)*N )
     return np.sqrt( (xx - xx.T)**2 + (yy - yy.T)**2 )
 
-if __name__ == '__main__':
+def main():
     from optparse import OptionParser
     parser = OptionParser( description = "Travelling Salesman Problem demo solver. Searches for a suboptimal solution of a given N-point problem"  )
     parser.add_option( "-s", "--show-plot", 
@@ -61,8 +61,8 @@ if __name__ == '__main__':
                        dest="show_plot",
                        help="Plot generated solution using PyPlot" )
     parser.add_option( "-o", "--output", dest="output",
-                       help="Ouptut file to store path to. By default, saves nothing"+
-                          "Format is pickle of 2-tuple: (x,y), where x and y are Numpy arrays of point coordinates" )
+                       help="Ouptut file to store path to. By default, saves nothing. "+
+                          "Data is in the Numpy format, single 2xN array of point coordinates" )
     parser.add_option( "-p", "--pattern",
                        dest="pattern", default="spot",
                        help="Pattern to show. Available options are:\n"+
@@ -108,6 +108,15 @@ if __name__ == '__main__':
             exit(2)
 
     if options.show_plot or not options.output:
-        import matplotlib.pyplot as pp
+        try:
+            import matplotlib.pyplot as pp
+        except ImportError as err:
+            print ("Can't show plot, matplotlib module not available:", err)
+            print ("Either install matplotlib or set an -o option" )
+            exit(2)
+
         pp.plot( xy[0,path], xy[1,path], 'k-' )
         pp.show()
+
+if __name__ == '__main__':
+    main()
