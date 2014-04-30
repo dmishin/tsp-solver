@@ -1,3 +1,0 @@
-#!/usr/bin/python
-from tsp_solver.demo import numpy2svg
-numpy2svg.main()
