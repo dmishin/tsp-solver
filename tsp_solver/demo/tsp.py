@@ -22,8 +22,9 @@ def ring_points( N ):
     r *= 0.3
     r += 2
 
-    return np.cos(alpha) * r, \
-           np.sin(alpha) * r
+    points = np.vstack( (np.cos(alpha), np.sin(alpha)) )
+    points *= r
+    return points
 
 def spot_points( N ):
     """Random points, forming a spot"""
