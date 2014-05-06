@@ -56,6 +56,7 @@ def make_dist_matrix(x, y):
 
 def main():
     from optparse import OptionParser
+
     parser = OptionParser( description = "Travelling Salesman Problem demo solver. Searches for a suboptimal solution of a given N-point problem"  )
     parser.add_option( "-s", "--show-plot", 
                        action = "store_true", default=False,
@@ -66,13 +67,12 @@ def main():
                           "Data is in the Numpy format, single 2xN array of point coordinates" )
     parser.add_option( "-p", "--pattern",
                        dest="pattern", default="spot",
-                       help="Pattern to show. Available options are:\n"+
-                       " spot    Symmetric spot of points, distributed by Gaussian law\n"+
-                       " ring    Sircle of points\n"+
-                       " box     1x1 box, uniformly filled with points\n"+
-                       " image:/path/to/image   Uses BW image, filling black parts with points" )
+                       help="Pattern to show, one of [spot, ring, box, image:path]. The 'spot' generates round spot of points, distributed by Gaussian law. "+
+                       "The 'ring' produces a ring of points. "+
+                       "The 'box' produces uniformly filled rectangle. "+
+                       "The image:/path/to/image uses BW image, where black areas are filled with points" )
     parser.add_option( "-n", "--num-points", type="int", default=500, dest="num_points",
-                       help="Number of random points to generate" )
+                       help="Number of random points to generate, less than 5000 (actually, 3000 is a practical limit)" )
 
     (options, args) = parser.parse_args()
 
