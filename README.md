@@ -34,9 +34,10 @@ Standard distutils-based installer is provided. Run the following code to instal
 
 Note that in Linux, this will bypass the package management system. Consider using dedicated tools, such as checkinstall.
 
+Alternatively, you may simply copy the tsp_solver/greedy.py to your project.
+
 Usage
 -----
-
 The library provides a greedy solver for the symmetric TSP.
 
 Basic usage is the following:
@@ -57,4 +58,32 @@ path = solve_tsp( D )
 # will print [1,0,2], path with total length of 3.0 units
 print path
 ```
+Algorithm
+---------
 
+The library implements simple "greedy" algorithm: 
+1. Initially, each vertex belongs to its own path. Each path has length 1.
+2. Find 2 nearest disconnected paths and connect them.
+3. Repeat, until there are at leats 2 paths.
+
+This algorightm has polynomial complexity.
+
+### Optimization
+Greedy algorithm sometimes produces highly non-optimal solutions. To solve this, **optimization** is provided. It tries to rearrange points in the paths to improve the solution. One optimization pass has O(n^4) complexity. Note that even unlimited number of optimization paths does not guarantees to find the optimal solution.
+
+
+Performance
+-----------
+
+This library neither implements a state-of-the-art algorithm, nor it is tuned for a high performance. 
+
+It' however, allows to find a decent suboptimal solution of TSP with 4000 points in several minutes. The biggest practical limitation is memory: O(n^2) memory is used.
+
+Demo
+----
+
+To see a demonstration, run 
+```sh
+$ make demo
+```
+without installation. The demo requires **Numpy** and **Matplotlib** python libraries to be installed.
