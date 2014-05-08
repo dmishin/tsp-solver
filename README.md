@@ -58,6 +58,9 @@ path = solve_tsp( D )
 # will print [1,0,2], path with total length of 3.0 units
 print path
 ```
+
+Distance matrix must be symmetric.
+
 Algorithm
 ---------
 
@@ -77,7 +80,7 @@ Performance
 
 This library neither implements a state-of-the-art algorithm, nor it is tuned for a high performance. 
 
-It' however, allows to find a decent suboptimal solution of TSP with 4000 points in several minutes. The biggest practical limitation is memory: O(n^2) memory is used.
+It however can find a decent suboptimal solution for the TSP with 4000 points in several minutes. The biggest practical limitation is memory: O(n^2) memory is used.
 
 Demo
 ----
