@@ -8,7 +8,7 @@ setup(name='tsp_solver',
       author='Dmitry Shintyakov',
       author_email='shintyakov@gmail.com',
       url='https://github.com/dmishin/tsp-solver',
-      packages=['tsp_solver'],
+      packages=['tsp_solver', 'tsp_solver.demo'],
       scripts=['bin/tsp_demo', 'bin/tsp_numpy2svg'],
       license="free domain"
       )
