@@ -9,6 +9,7 @@ else:
     pass
 
 def pairs_by_dist_np(N, distances):
+    """optimized version of pairs_by_dist, using numpy"""
     pairs = numpy.zeros( (N*(N-1)//2, ), dtype=('f4, i2, i2') )
 
     idx = 0
@@ -22,8 +23,8 @@ def pairs_by_dist_np(N, distances):
     return pairs[["f1","f2"]]
 
 
-def solve_tsp( distances, optim_steps=3,pairs_by_dist = pairs_by_dist_np ):
+def solve_tsp( distances, optim_steps=3,pairs_by_dist = pairs_by_dist_np , endpoints=None):
     """Given a distance matrix, finds a solution for the TSP problem.
     Returns list of vertex indices.
     Version that uses Numpy - consumes less memory and works faster."""
-    return base_solve_tsp( distances, optim_steps=optim_steps, pairs_by_dist=pairs_by_dist_np )
+    return base_solve_tsp( distances, optim_steps=optim_steps, pairs_by_dist=pairs_by_dist_np, endpoints=endpoints )

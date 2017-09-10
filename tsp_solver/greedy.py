@@ -13,10 +13,10 @@ else:
     pass
     
 
-def optimize_solution( distances, connections ):
+def optimize_solution( distances, connections, endpoints ):
     """Tries to optimize solution, found by the greedy algorithm"""
     N = len(connections)
-    path = restore_path( connections )
+    path = restore_path( connections, endpoints )
     def ds(i,j): #distance between ith and jth points of path
         return distances[path[i]][path[j]]
     d_total = 0.0
@@ -38,20 +38,24 @@ def optimize_solution( distances, connections ):
                 connections[path[c]].append(path[a])
                 connections[path[d]].remove(path[c])
                 connections[path[d]].append(path[b])
-                path[:] = restore_path( connections )
+                path[:] = restore_path( connections, endpoints )
     
     return optimizations, d_total
         
-def restore_path( connections ):
+def restore_path( connections, endpoints ):
     """Takes array of connections and returns a path.
     Connections is array of lists with 1 or 2 elements.
     These elements are indices of teh vertices, connected to this vertex
     Guarantees that first index < last index
     """
-    #there are 2 nodes with valency 1 - start and end. Get them.
-    start, end = [idx 
-                  for idx, conn in enumerate(connections)
-                  if len(conn)==1 ]
+    if endpoints is None:
+        #there are 2 nodes with valency 1 - start and end. Get them.
+        start, end = [idx 
+                      for idx, conn in enumerate(connections)
+                      if len(conn)==1 ]
+    else:
+        start, end = endpoints
+
     path = [start]
     prev_point = None
     cur_point = start
@@ -64,31 +68,49 @@ def restore_path( connections ):
         prev_point, cur_point = cur_point, next_point
     return path
 
+def _assert_triangular(distances):
+    """Ensure that matrix is left-triangular at least.
+    """
+    for i, row in enumerate(distances):
+        if len(row) <= i: raise ValueError( "Distance matrix must be left-triangular at least. Row {row} must have at least {i} items".format(**locals()))
+    
+
 def pairs_by_dist(N, distances):
+    """returns list of coordinate pairs (i,j), sorted by distances; such that i < j"""
     #Sort coordinate pairs by distance
-    indices = [None] * (N*(N-1)//2)
-    idx = 0
+    indices = []
     for i in xrange(N):
-        for j in xrange(i+1,N):
-            indices[idx] = (i,j)
-            idx += 1
-            
+        for j in xrange(i):
+            indices.append((j,i))
+
     indices.sort(key = lambda ij: distances[ij[0]][ij[1]])
     return indices
-    
-def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist ):
+
+def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist, endpoints=None ):
     """Given a distance matrix, finds a solution for the TSP problem.
     Returns list of vertex indices. 
-    Guarantees that the first index is lower than the last"""
+    Guarantees that the first index is lower than the last
+
+    :arg: distances : left-triangular matrix of distances. array of arrays
+    :arg: optim_steps (int) number of additional optimization steps, allows to improve solution but costly.
+    :arg: pairs_by_dist (function) an implementtion of the pairs_by_dist function. for optimization purposes.
+    :arg: endpoinds : None or pair (int,int)
+    """
     N = len(distances)
     if N == 0: return []
     if N == 1: return [0]
-    for row in distances:
-        if len(row) != N: raise ValueError( "Matrix is not square")
+
+    _assert_triangular(distances)
 
     #State of the TSP solver algorithm.
     node_valency = pyarray('i', [2])*N #Initially, each node has 2 sticky ends
-    
+    if endpoints is not None:
+        start, end = endpoints
+        if start == end: raise ValueError("start=end is not supported")
+        node_valency[start]=1
+        node_valency[end]=1
+        
+        
     #for each node, stores 1 or 2 connected nodes
     connections = [[] for i in xrange(N)] 
 
@@ -96,17 +118,18 @@ def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist ):
         #segments of nodes. Initially, each segment contains only 1 node
         segments = [ [i] for i in xrange(N) ]
   
-        def filtered_pairs():
-            #Generate sequence of 
+        def possible_edges():
+            #Generate sequence of graph edges, that are possible and connect different segments.
+            #print("#### sorted pairs:", sorted_pairs)
             for ij in sorted_pairs:
                 i,j = ij
-                if not node_valency[i] or\
-                        not node_valency[j] or\
-                        (segments[i] is segments[j]): 
-                    continue
-                yield ij
-
-        for i,j in islice( filtered_pairs(), N-1 ):
+                #if both start and end could have connections,
+                #  and both nodes connect to a different segments:
+                if node_valency[i] and node_valency[j] and\
+                   (segments[i] is not segments[j]): 
+                    yield ij
+                    
+        def connect_vertices(i,j):
             node_valency[i] -= 1
             node_valency[j] -= 1
             connections[i].append(j)
@@ -120,13 +143,36 @@ def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist ):
             for node_idx in seg_j:
                 segments[node_idx] = seg_i
             seg_i.extend(seg_j)
+            
+        def edge_connects_endpoint_segments(i,j):
+            #return True, if given ede merges 2 segments that have endpoints in them
+            si,sj = segments[i],segments[j]
+            ss,se = segments[start], segments[end]
+            return (si is ss) and (sj is se) or (sj is ss) and (si is se)
+                
+            
+        #Take first N-1 possible edge. they are already sorted by distance
+        edges_left = N-1
+        for i,j in possible_edges():
+            if endpoints and edges_left!=1 and edge_connects_endpoint_segments(i,j):
+                #print(f"#### disallow {i}, {j} because premature termination")
+                continue #don't allow premature path termination
+            
+            
+            #print(f"####add edge {i}, {j} of len {distances[i][j]}")
+            
+            connect_vertices(i,j)
+            edges_left -= 1
+            if edges_left == 0:
+                break
 
+    #invoke main greedy algorithm
     join_segments(pairs_by_dist(N, distances))
 
+    #now call additional optiomization procedure.
     for passn in range(optim_steps):
-        nopt, dtotal = optimize_solution( distances, connections )
+        nopt, dtotal = optimize_solution( distances, connections, endpoints )
         if nopt == 0:
             break
-
-    path = restore_path( connections )
-    return path
+    #restore path from the connections map (graph) and return it
+    return restore_path( connections, endpoints=endpoints )

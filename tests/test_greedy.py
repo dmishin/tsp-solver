@@ -36,6 +36,15 @@ def make_test_case( solver ):
                     [1, 0]]
             vs = solver( dist )
             self.assertListEqual( vs, [0,1] )
+            
+        def test_two_vertices_endpoints(self):
+            dist = [[0, 1],
+                    [1, 0]]
+            vs = solver( dist, endpoints=(0,1) )
+            self.assertListEqual( vs, [0,1] )
+            
+            vs = solver( dist, endpoints=(1,0) )
+            self.assertListEqual( vs, [1,0] )
 
         def test_three_vertices(self):
             #Make a simple matrix with 2 short paths: 0->2 and 2->1
@@ -57,7 +66,22 @@ def make_test_case( solver ):
             vs = solver(D)
             self.assertListEqual( vs, [0,2,4,6,8,9,7,5,3,1] )
                            
+        def test_endpoints( self ):
+            """Check that endpoints are processed correctly"""
+            D = make_dist_matrix(3, 1000, [(0,2,5), (2,1,1)])
+            
+            for start in (0,1,2):
+                for end in (0,1,2):
+                    if start == end:continue
+                    vs = solver( D, endpoints=(start, end) )
 
+                    details = "endpoints={}, D={}, result={}".format((start, end), repr(D), repr(vs))
+                    self.assertEqual(len(vs), 3, "Must return 3 nodes when "+details)
+                    self.assertEqual(vs[0], start, "Must start correctly "+details)
+                    self.assertEqual(vs[2], end, "Must end correctly "+details)
+
+                    
+            
     return TestGreedy
 
 class TestGreedySimple( make_test_case( greedy.solve_tsp ) ):
