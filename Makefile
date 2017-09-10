@@ -7,7 +7,11 @@ test2:
 perf:
 	PYTHONPATH=.:$(PYTHONPATH) python tests/perftest.py
 
-deb:
-	fakeroot checkinstall --pkgname=python-tsp-solver --pkgversion=0.1 --install=no -y python setup.py install
+checkinstall:
+	checkinstall --pkgname=python-tsp-solver --pkgversion=0.1 --install=yes -y python setup.py install
 
-.PHONY: test test2 perf deb
+
+demo:
+	PYTHONPATH=.:$(PYTHONPATH) ./bin/tsp_demo -p ring
+
+.PHONY: test test2 perf deb demo checkinstall

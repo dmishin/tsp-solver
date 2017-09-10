@@ -41,12 +41,12 @@ Manual installation:
  # python setup.py install
 ```
 
-Usage 
+Alternatively, you may simply copy the tsp_solver/greedy.py to your project.
+
+Usage
 -----
-
-The library provides a greedy solver for the symmetric Travelling Salesman Problem (TSP).
-
-Basic usage is the following:
+The library provides a greedy solver for the symmetric TSP.
+Basic usage is:
 
 ```python
 from tsp_solver.greedy import solve_tsp
@@ -65,3 +65,34 @@ will print [1,0,2], path with total length of 3.0 units
 print path
 ```
 
+Distance matrix must be symmetric.
+
+Algorithm
+---------
+
+The library implements simple "greedy" algorithm: 
+1. Initially, each vertex belongs to its own path. Each path has length 1.
+2. Find 2 nearest disconnected paths and connect them.
+3. Repeat, until there are at leats 2 paths.
+
+This algorightm has polynomial complexity.
+
+### Optimization
+Greedy algorithm sometimes produces highly non-optimal solutions. To solve this, **optimization** is provided. It tries to rearrange points in the paths to improve the solution. One optimization pass has O(n^4) complexity. Note that even unlimited number of optimization paths does not guarantees to find the optimal solution.
+
+
+Performance
+-----------
+
+This library neither implements a state-of-the-art algorithm, nor it is tuned for a high performance. 
+
+It however can find a decent suboptimal solution for the TSP with 4000 points in several minutes. The biggest practical limitation is memory: O(n^2) memory is used.
+
+Demo
+----
+
+To see a demonstration, run 
+```sh
+$ make demo
+```
+without installation. The demo requires **Numpy** and **Matplotlib** python libraries to be installed.
