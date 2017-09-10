@@ -3,12 +3,13 @@
 from distutils.core import setup
 
 setup(name='tsp_solver',
-      version='0.1',
+      version='0.2',
       description='Greedy, supoptimal solver for the Travelling Salesman Problem',
       author='Dmitry Shintyakov',
       author_email='shintyakov@gmail.com',
       url='https://github.com/dmishin/tsp-solver',
       packages=['tsp_solver', 'tsp_solver.demo'],
+      keywords=['travelling salesman problem', 'optimization'],
       scripts=['bin/tsp_demo', 'bin/tsp_numpy2svg'],
       license="free domain"
       )
