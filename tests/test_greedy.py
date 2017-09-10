@@ -11,12 +11,13 @@ else:
     
 
 def make_dist_matrix( n, default, ijd_tuples ):
-    """Utility function to make square distance matrices"""
-    dist = [ [default for j in xrange(n)]
+    """Utility function to make triangular distance matrices"""
+    dist = [ [default for j in xrange(i)]
              for i in xrange(n)]
     for i,j,d in ijd_tuples:
+        if i<j :
+            i,j = j,i
         dist[i][j] = d
-        dist[j][i] = d
     return dist
 
 def make_test_case( solver ):
@@ -27,7 +28,7 @@ def make_test_case( solver ):
             vertices = solver( distances )
             self.assertListEqual( vertices, [] )
 
-        def test_single_vertes(self):
+        def test_single_vertex(self):
             vs = solver( [[1]] )
             self.assertListEqual( vs, [0] )
 
@@ -93,27 +94,27 @@ class TestGreedyNumpy( make_test_case( greedy_numpy.solve_tsp ) ):
 
 class TestPairsByDist( TestCase ):
     def test_pairs_by_dist(self):
-        dist = [[0,2,3],
-                [2,0,5],
-                [3,5,0]]
+        dist = [[],
+                [2],
+                [3,5]]
         N = 3
         pbd = list( greedy.pairs_by_dist( N, dist ) )
         #Returns indices of node pairs, sorted by distance
-        expected = [ (0,1),
-                     (0,2),
-                     (1,2) ]
+        expected = [ (1,0),
+                     (2,0),
+                     (2,1) ]
         self.assertListEqual( pbd, expected )
         
     def test_pairs_by_dist_numpy(self):
-        dist = [[0,2,3],
-                [2,0,5],
-                [3,5,0]]
+        dist = [[],
+                [2],
+                [3,5]]
         N = 3
         pbd = list( greedy_numpy.pairs_by_dist_np( N, dist ) )
 
-        expected = [ (0,1),
-                     (0,2),
-                     (1,2) ]
+        expected = [ (1,0),
+                     (2,0),
+                     (2,1) ]
         self.assertEqual( len(expected), len( pbd ) ) #lists must have same lenght
         for idx, i_j in enumerate(expected):
             i1, j1 = pbd[idx]

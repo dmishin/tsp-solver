@@ -18,7 +18,13 @@ def optimize_solution( distances, connections, endpoints ):
     N = len(connections)
     path = restore_path( connections, endpoints )
     def ds(i,j): #distance between ith and jth points of path
-        return distances[path[i]][path[j]]
+        pi = path[i]
+        pj = path[j]
+        if pi < pj:
+            return distances[pj][pi]
+        else:
+            return distances[pi][pj]
+            
     d_total = 0.0
     optimizations = 0
     for a in xrange(N-1):
@@ -72,7 +78,7 @@ def _assert_triangular(distances):
     """Ensure that matrix is left-triangular at least.
     """
     for i, row in enumerate(distances):
-        if len(row) <= i: raise ValueError( "Distance matrix must be left-triangular at least. Row {row} must have at least {i} items".format(**locals()))
+        if len(row) < i: raise ValueError( "Distance matrix must be left-triangular at least. Row {row} must have at least {i} items".format(**locals()))
     
 
 def pairs_by_dist(N, distances):
@@ -81,7 +87,7 @@ def pairs_by_dist(N, distances):
     indices = []
     for i in xrange(N):
         for j in xrange(i):
-            indices.append((j,i))
+            indices.append((i,j))
 
     indices.sort(key = lambda ij: distances[ij[0]][ij[1]])
     return indices

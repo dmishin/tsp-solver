@@ -14,10 +14,10 @@ def pairs_by_dist_np(N, distances):
 
     idx = 0
     for i in xrange(N):
-        row_size = N-i-1
+        row_size = i
         dist_i = distances[i]
         pairs[idx:(idx+row_size)] = [ (dist_i[j], i, j)
-                                      for j in xrange(i+1, N) ]
+                                      for j in xrange(i) ]
         idx += row_size
     pairs.sort(order=["f0"]) #sort by the first field
     return pairs[["f1","f2"]]
