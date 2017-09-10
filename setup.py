@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='tsp_solver',
-      version='0.1',
+      version='0.2',
       description='Greedy, supoptimal solver for the Travelling Salesman Problem',
       author='Dmitry Shintyakov',
       author_email='shintyakov@gmail.com',
