@@ -61,19 +61,19 @@ D = [[]],
 
 path = solve_tsp( D )
 
-will print [1,0,2], path with total length of 3.0 units
+#will print [1,0,2], path with total length of 3.0 units
 print path
 ```
 
-Distance matrix must be symmetric.
+Only left triangular part is used from the distance matrix D.
 
 Algorithm
 ---------
 
-The library implements simple "greedy" algorithm: 
-1. Initially, each vertex belongs to its own path. Each path has length 1.
-2. Find 2 nearest disconnected paths and connect them.
-3. Repeat, until there are at leats 2 paths.
+The library implements a simple "greedy" algorithm: 
+1. Initially, each vertex belongs to its own path fragment. Each path fragment has length 1.
+2. Find 2 nearest disconnected path fragments and connect them.
+3. Repeat, until there are at least 2 path fragments.
 
 This algorightm has polynomial complexity.
 

@@ -10,6 +10,6 @@ setup(name='tsp_solver',
       url='https://github.com/dmishin/tsp-solver',
       packages=['tsp_solver'],
       keywords=['travelling salesman problem', 'optimization'],
-      scripts=['bin/tsp_demo', 'bin/tsp_numpy2svg']
+      scripts=['bin/tsp_demo', 'bin/tsp_numpy2svg'],
       license="free domain"
       )
