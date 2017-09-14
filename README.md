@@ -28,13 +28,14 @@ Installation
 ------------
 Install from PyPi:
 ```sh
- # pip install tsp_solver
+ # pip install tsp_solver2
 ```
 or
 ```sh
- $ pip install --user tsp_solver
+ $ pip install --user tsp_solver2
 ```
- 
+(Note taht *tsp_solver* package contains an older version).
+
 Manual installation:
 
 ```sh
@@ -56,8 +57,8 @@ from tsp_solver.greedy import solve_tsp
 #                B to C is 3.0
 #                A to C is 2.0
 D = [[]],
-     [ 1.0],
-     [ 2.0, 3.0]]
+     [1.0],
+     [2.0, 3.0]]
 
 path = solve_tsp( D )
 
@@ -100,3 +101,11 @@ To see a demonstration, run
 $ make demo
 ```
 without installation. The demo requires **Numpy** and **Matplotlib** python libraries to be installed.
+
+Testing
+-------
+
+To execute unit tests, run
+```sh
+$ make test
+```

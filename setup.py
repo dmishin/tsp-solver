@@ -2,7 +2,7 @@
 
 from distutils.core import setup
 
-setup(name='tsp_solver',
+setup(name='tsp_solver2',
       version='0.2',
       description='Greedy, suboptimal solver for the Travelling Salesman Problem',
       author='Dmitry Shintyakov',
