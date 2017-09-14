@@ -87,10 +87,10 @@ def pairs_by_dist(N, distances):
     indices = []
     for i in xrange(N):
         for j in xrange(i):
-            indices.append((i,j))
+            indices.append(i*N+j)
 
-    indices.sort(key = lambda ij: distances[ij[0]][ij[1]])
-    return indices
+    indices.sort(key = lambda ij: distances[ij//N][ij%N])
+    return ((ij//N,ij%N) for ij in indices)
 
 def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist, endpoints=None ):
     """Given a distance matrix, finds a solution for the TSP problem.
