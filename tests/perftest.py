@@ -34,5 +34,5 @@ if __name__=="__main__":
     try:
         from tsp_solver import greedy_numpy
         run_test("Greedy TSP, numpy", greedy_numpy.solve_tsp, npoints = 500)
-    except ImportError as err:
-        print ("No numpy module")
+    except ImportError :
+        print ("No numpy module should be used")
