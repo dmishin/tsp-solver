@@ -63,7 +63,7 @@ D = [[],
 path = solve_tsp( D )
 
 #will print [1,0,2], path with total length of 3.0 units
-print path
+print(path)
 ```
 
 The triangular matrix `D` in the above example represents the following graph with three nodes A, B, and C:
