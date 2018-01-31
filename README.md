@@ -56,7 +56,7 @@ from tsp_solver.greedy import solve_tsp
 #  Distance from A to B is 1.0
 #                B to C is 3.0
 #                A to C is 2.0
-D = [[]],
+D = [[],
      [1.0],
      [2.0, 3.0]]
 
