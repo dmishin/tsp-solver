@@ -32,7 +32,7 @@ def spot_points( N ):
     return xy
 
 def box_points( N ):
-    xy = np.random.rand( (2,N) )
+    xy = np.random.rand(2,N)
     return xy
 
 def image_points( N, src_image ):
