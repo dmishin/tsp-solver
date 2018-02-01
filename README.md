@@ -72,6 +72,12 @@ The triangular matrix `D` in the above example represents the following graph wi
 
 Square matrix may be provided, but only left triangular part is used from it.
 
+### Utility functions
+
+*tsp_solver.util.path_cost(distance_matrix, path)*
+
+Caclulate total length of the given path, using the provided distance matrix.
+
 Algorithm
 ---------
 
