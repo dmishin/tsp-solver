@@ -63,7 +63,7 @@ D = [[]],
 path = solve_tsp( D )
 
 #will print [1,0,2], path with total length of 3.0 units
-print path
+print(path)
 ```
 
 The triangular matrix `D` in the above example represents the following graph with three nodes A, B, and C:
@@ -71,6 +71,24 @@ The triangular matrix `D` in the above example represents the following graph wi
 <img src="images/tsp-nodes.jpg" width="100%">
 
 Square matrix may be provided, but only left triangular part is used from it.
+
+### Using fixed endpoints
+It is also possible to manually specify desired start and end nodes of the path. Note that this would usually increase total length of the path.
+Example, using the same distance matrix as above, but now requiring that path starts at A (index 0) and ends at C (index 2):
+
+```python
+
+D = [[],
+     [1.0],
+     [2.0, 3.0]]
+
+path = solve_tsp( D, endpoints = (0,2) )
+
+#will print path [0,1,2]
+print(path)
+```
+
+Endpoints must be different.
 
 Algorithm
 ---------
