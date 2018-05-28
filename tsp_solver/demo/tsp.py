@@ -101,7 +101,7 @@ def main():
 
     if options.output:
         try:
-            with file( options.output, "w") as fl:
+            with open( options.output, "wb") as fl:
                 np.save( fl, xy[:,path])
                 print ("Saved file %s"%(options.output))
         except IOError as err:

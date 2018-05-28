@@ -1,10 +1,13 @@
-from __future__ import with_statement, print_function
+from __future__ import print_function
 import os
 import math
 import numpy as np
 from xml.etree import ElementTree as et
-from itertools import izip
 from optparse import OptionParser
+try:
+    from itertools import izip as zip
+except ImportError:
+    pass
 
 def dbl2str( f ):
     return str(int(f))
@@ -48,7 +51,7 @@ def GenerateSVGContour(output, x,y, palette, options=None, margin=10, out_size =
     real_h = int((y1-y0)*scale + 2*margin)
 
     def xy_seq():
-        return izip(x,y)
+        return zip(x,y)
 
     # create an SVG XML element
     doc = et.Element('svg', 
@@ -71,11 +74,11 @@ def GenerateSVGContour(output, x,y, palette, options=None, margin=10, out_size =
                           r=circle_radius, fill='rgb(%d,%d,%d)'%palette.at(float(i)/len(x)))
 
     # ElementTree 1.2 doesn't write the SVG file header errata, so do that manually
-    with file(output, 'w') as f:
+    with open(output, 'wb') as f:
         if svg_header:
-            f.write('<?xml version=\"1.0\" standalone=\"no\"?>\n')
-            f.write('<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"\n')
-            f.write('\"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n')
+            f.write(b'<?xml version=\"1.0\" standalone=\"no\"?>\n')
+            f.write(b'<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"\n')
+            f.write(b'\"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n')
         f.write(et.tostring(doc))
 
 
@@ -152,7 +155,7 @@ def main():
     for in_file in args:
         out_file = options.output or os.path.splitext(in_file)[0]+".svg"
         try:
-            with file(in_file,"r") as fl:
+            with open(in_file,"rb") as fl:
                 xy = np.load( fl )
                 x=xy[0,:]
                 y=xy[1,:]
