@@ -11,6 +11,8 @@ The library does not requires any libraries, but demo scripts require:
 - PIL (Python imaging library)
 - Matplotlib
 
+The library works under both Python 2 and 3.
+
 ### Modules provided:
 - **tsp_solver.greedy** : Basic greedy TSP solver in Python
 - **tsp_solver.greedy_numpy** : Version that uses Numpy matrices, which reduces memory use, but performance is several percents lower
