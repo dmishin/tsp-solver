@@ -54,14 +54,22 @@ def restore_path( connections, endpoints ):
     These elements are indices of teh vertices, connected to this vertex
     Guarantees that first index < last index
     """
-    if endpoints is None:
-        #there are 2 nodes with valency 1 - start and end. Get them.
-        start, end = [idx 
-                      for idx, conn in enumerate(connections)
-                      if len(conn)==1 ]
+    #when endpoints is None, then both start and end are not specified.
+    start, end = endpoints or (None, None)
+    #Now, if start, end or both are not specified - replace them with  replace unspecified start or end endpoints with the found ones
+    need_revert = False
+    if start is None and end is None:
+        #make (lazy) iterator over nodes that only have one link (potential start and end nodes). Avoid nodes that are already given.
+        univalent_nodes = (idx 
+                           for idx, conn in enumerate(connections)
+                           if len(conn)==1)
+        start = next(univalent_nodes)
     else:
-        start, end = endpoints
-
+        if start is None:
+            start = end
+            need_revert = True
+    
+    #ready to generate the path now.
     path = [start]
     prev_point = None
     cur_point = start
@@ -72,7 +80,10 @@ def restore_path( connections, endpoints ):
         next_point = next_points[0]
         path.append(next_point)
         prev_point, cur_point = cur_point, next_point
-    return path
+    if need_revert:
+        return path[::-1]
+    else:
+        return path
 
 def _assert_triangular(distances):
     """Ensure that matrix is left-triangular at least.
@@ -100,7 +111,7 @@ def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist, endpoints=
     :arg: distances : left-triangular matrix of distances. array of arrays
     :arg: optim_steps (int) number of additional optimization steps, allows to improve solution but costly.
     :arg: pairs_by_dist (function) an implementtion of the pairs_by_dist function. for optimization purposes.
-    :arg: endpoinds : None or pair (int,int)
+    :arg: endpoinds : None or pair (int or None, int or None). Specifies start and end nodes of the path. None is unspecified.
     """
     N = len(distances)
     if N == 0: return []
@@ -110,12 +121,14 @@ def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist, endpoints=
 
     #State of the TSP solver algorithm.
     node_valency = pyarray('i', [2])*N #Initially, each node has 2 sticky ends
-    if endpoints is not None:
-        start, end = endpoints
-        if start == end: raise ValueError("start=end is not supported")
+    start, end = endpoints or (None, None)
+    has_both_endpoints = (start is not None) and (end is not None)
+    if (start is not None) and (start == end):
+        raise ValueError("start=end is not supported")
+    if start is not None:
         node_valency[start]=1
+    if end is not None:
         node_valency[end]=1
-        
         
     #for each node, stores 1 or 2 connected nodes
     connections = [[] for i in xrange(N)] 
@@ -160,13 +173,8 @@ def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist, endpoints=
         #Take first N-1 possible edge. they are already sorted by distance
         edges_left = N-1
         for i,j in possible_edges():
-            if endpoints and edges_left!=1 and edge_connects_endpoint_segments(i,j):
-                #print(f"#### disallow {i}, {j} because premature termination")
+            if has_both_endpoints and edges_left!=1 and edge_connects_endpoint_segments(i,j):
                 continue #don't allow premature path termination
-            
-            
-            #print(f"####add edge {i}, {j} of len {distances[i][j]}")
-            
             connect_vertices(i,j)
             edges_left -= 1
             if edges_left == 0:

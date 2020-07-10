@@ -8,7 +8,7 @@ perf:
 	PYTHONPATH=.:$(PYTHONPATH) python tests/perftest.py
 
 checkinstall:
-	checkinstall --pkgname=python-tsp-solver --pkgversion=0.1 --install=yes -y python setup.py install
+	checkinstall --pkgname=python-tsp-solver --pkgversion=0.3 --install=yes -y python setup.py install
 
 
 demo:

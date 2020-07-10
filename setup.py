@@ -9,7 +9,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='tsp_solver2',
-      version='0.3',
+      version='0.4',
       description='Greedy, suboptimal solver for the Travelling Salesman Problem',
       author='Dmitry Shintyakov',
       author_email='shintyakov@gmail.com',

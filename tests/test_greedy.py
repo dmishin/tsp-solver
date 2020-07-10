@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 from unittest import TestCase
 from tsp_solver import greedy, greedy_numpy
-
+import random
 if "xrange" not in globals():
     #py3
     xrange = range
@@ -70,18 +70,47 @@ def make_test_case( solver ):
         def test_endpoints( self ):
             """Check that endpoints are processed correctly"""
             D = make_dist_matrix(3, 1000, [(0,2,5), (2,1,1)])
-            
-            for start in (0,1,2):
-                for end in (0,1,2):
+
+            #None means unspecified enpoint
+            for start in (0,1,2, None):
+                for end in (0,1,2, None):
                     if start == end:continue
                     vs = solver( D, endpoints=(start, end) )
 
                     details = "endpoints={}, D={}, result={}".format((start, end), repr(D), repr(vs))
                     self.assertEqual(len(vs), 3, "Must return 3 nodes when "+details)
-                    self.assertEqual(vs[0], start, "Must start correctly "+details)
-                    self.assertEqual(vs[2], end, "Must end correctly "+details)
 
-                    
+                    if start is not None:
+                        self.assertEqual(vs[0], start, "Must start correctly "+details)
+                    if end is not None:
+                        self.assertEqual(vs[-1], end, "Must end correctly "+details)
+
+
+        def test_endpoints_large( self ):
+            """Check that endpoints are processed correctly"""
+            N = 10
+            #Make a deterministic random matrix
+            for seed in range(10):
+                random.seed(31415+seed)
+                D = [[random.randint(0,1000) for j in range(m)]
+                     for m in range(N)]
+
+                #None means unspecified enpoint
+                for start in list(range(N))+[None]:
+                    for end in list(range(N))+[None]:
+                        if start == end:continue
+                        vs = solver( D, endpoints=(start, end) )
+
+                        details = "seed={}, endpoints={}, D={}, result={}".format(seed, (start, end), repr(D), repr(vs))
+                        self.assertEqual(len(vs), N, "Must return 3 nodes when "+details)
+
+                        if start is not None:
+                            self.assertEqual(vs[0], start, "Must start correctly "+details)
+                        if end is not None:
+                            self.assertEqual(vs[-1], end, "Must end correctly "+details)
+
+                        
+                        
             
     return TestGreedy
 
