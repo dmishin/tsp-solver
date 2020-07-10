@@ -62,6 +62,10 @@ def main():
                        action = "store_true", default=False,
                        dest="show_plot",
                        help="Plot generated solution using PyPlot" )
+    parser.add_option( "-l", "--longest", 
+                       action = "store_true", default=False,
+                       dest="longest_path",
+                       help="Search for the longest path, not shortest" )
     parser.add_option( "-o", "--output", dest="output",
                        help="Ouptut file to store path to. By default, saves nothing. "+
                           "Data is in the Numpy format, single 2xN array of point coordinates" )
@@ -96,7 +100,10 @@ def main():
         exit(1)
 
     print ("Solving sample TSP problem for %d points"%(N))
-    path = solve_tsp( make_dist_matrix(xy[0,:],xy[1,:]) )
+    distances = make_dist_matrix(xy[0,:],xy[1,:])
+    if options.longest_path:
+        distances *= -1
+    path = solve_tsp( distances )
     print ("Solved")
 
     if options.output:
