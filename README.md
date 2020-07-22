@@ -94,12 +94,24 @@ print(path)
 ```
 
 New in version 0.4: it is not possible to specify only one of two end points:
+
 ```python
 solve_tsp( D, endpoints = (None,2) )
 solve_tsp( D, endpoints = (0,None) )
 ```
 
-Currently, endpoints must be different.
+### Round trip paths
+To find a round trip path, that returns to the starting node, specify the same value to both endpoints:
+
+```python
+path = solve_tsp( D, endpoints = (0,0) )
+#will print path [0,1,2,0]
+print(path)
+```
+
+Note that round trip paths are one step longer.
+
+Neither solution quality nor complexity depends on the endpoints specified, so it is safe to use (0,0) when don't care.
 
 Algorithm
 ---------
