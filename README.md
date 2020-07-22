@@ -154,5 +154,7 @@ $ make test
 Change log
 ----------
 
+### Version 0.4.1
+Added possibility to search for round trip paths, when endpoints coincide.
 ### Version 0.4
 Added possibility to specify only one of end points.
