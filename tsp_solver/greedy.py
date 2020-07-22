@@ -58,14 +58,15 @@ def restore_path( connections, endpoints ):
     start, end = endpoints or (None, None)
     #Now, if start, end or both are not specified - replace them with  replace unspecified start or end endpoints with the found ones
     need_revert = False
-    if start is None and end is None:
-        #make (lazy) iterator over nodes that only have one link (potential start and end nodes). Avoid nodes that are already given.
-        univalent_nodes = (idx 
-                           for idx, conn in enumerate(connections)
-                           if len(conn)==1)
-        start = next(univalent_nodes)
-    else:
-        if start is None:
+    is_loop = (start is not None) and (start == end)
+    if start is None:
+        if end is None:
+            #find first node that only have one link.
+            start = next(idx 
+                         for idx, conn in enumerate(connections)
+                         if len(conn)==1)
+        else:
+            #In this case - search from the end, then reverse the order
             start = end
             need_revert = True
     
@@ -73,11 +74,11 @@ def restore_path( connections, endpoints ):
     path = [start]
     prev_point = None
     cur_point = start
-    while True:
-        next_points = [pnt for pnt in connections[cur_point] 
-                       if pnt != prev_point ]
-        if not next_points: break
-        next_point = next_points[0]
+    #We know that path len should be the same as number of connection nodes, or one more if we are searching for a loop.
+    #We already have one node, so need the rest
+    for _ in xrange(len(connections) - (0 if is_loop else 1)):
+        next_point = next(pnt for pnt in connections[cur_point] 
+                          if pnt != prev_point )
         path.append(next_point)
         prev_point, cur_point = cur_point, next_point
     if need_revert:
@@ -114,21 +115,30 @@ def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist, endpoints=
     :arg: endpoinds : None or pair (int or None, int or None). Specifies start and end nodes of the path. None is unspecified.
     """
     N = len(distances)
+    start, end = endpoints or (None, None)
+    #When both points are specified, we are looking for a loop.
+    is_loop = (start is not None) and (start == end)
+    if start is not None and not (0<=start<N): raise ValueError("Start point does not belong range")
+    if end is not None and not (0<=end<N): raise ValueError("Start point does not belong range")
+        
     if N == 0: return []
-    if N == 1: return [0]
-
+    if N == 1:
+        return [0,0] if is_loop else [0]
+    if N == 2 and is_loop:
+        #Too short loops are easier to bypass here
+        return [start, 1-start, start]
     _assert_triangular(distances)
 
     #State of the TSP solver algorithm.
     node_valency = pyarray('i', [2])*N #Initially, each node has 2 sticky ends
-    start, end = endpoints or (None, None)
     has_both_endpoints = (start is not None) and (end is not None)
-    if (start is not None) and (start == end):
-        raise ValueError("start=end is not supported")
-    if start is not None:
-        node_valency[start]=1
-    if end is not None:
-        node_valency[end]=1
+
+    if not is_loop:
+        #in a loop, all nodes have valency 2. Otherwise - start and end has 1
+        if start is not None:
+            node_valency[start]=1
+        if end is not None:
+            node_valency[end]=1
         
     #for each node, stores 1 or 2 connected nodes
     connections = [[] for i in xrange(N)] 
@@ -139,7 +149,6 @@ def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist, endpoints=
   
         def possible_edges():
             #Generate sequence of graph edges, that are possible and connect different segments.
-            #print("#### sorted pairs:", sorted_pairs)
             for ij in sorted_pairs:
                 i,j = ij
                 #if both start and end could have connections,
@@ -165,6 +174,8 @@ def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist, endpoints=
             
         def edge_connects_endpoint_segments(i,j):
             #return True, if given ede merges 2 segments that have endpoints in them
+            #when this happens, search would terminate prematurely.
+            #ALso works with the case when both endpoints are the same.
             si,sj = segments[i],segments[j]
             ss,se = segments[start], segments[end]
             return (si is ss) and (sj is se) or (sj is ss) and (si is se)
@@ -179,7 +190,9 @@ def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist, endpoints=
             edges_left -= 1
             if edges_left == 0:
                 break
-
+        #if searching for a loop then close it
+        if is_loop:
+            _close_loop(connections)
     #invoke main greedy algorithm
     join_segments(pairs_by_dist(N, distances))
 
@@ -190,3 +203,10 @@ def solve_tsp( distances, optim_steps=3, pairs_by_dist=pairs_by_dist, endpoints=
             break
     #restore path from the connections map (graph) and return it
     return restore_path( connections, endpoints=endpoints )
+
+def _close_loop(connections):
+    """Modify connections to close the loop"""
+    i,j = (i for i, conn in enumerate(connections)
+           if len(conn)==1)
+    connections[i].append(j)
+    connections[j].append(i)

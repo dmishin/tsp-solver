@@ -31,12 +31,22 @@ def make_test_case( solver ):
         def test_single_vertex(self):
             vs = solver( [[1]] )
             self.assertListEqual( vs, [0] )
+            
+        def test_single_vertex_loop(self):
+            vs = solver( [[1]], endpoints=(0,0) )
+            self.assertListEqual( vs, [0,0] )
 
         def test_two_vertices(self):
             dist = [[0, 1],
                     [1, 0]]
             vs = solver( dist )
             self.assertListEqual( vs, [0,1] )
+            
+        def test_two_vertices_loop(self):
+            dist = [[0, 1],
+                    [1, 0]]
+            vs = solver( dist, endpoints=(0,0) )
+            self.assertListEqual( vs, [0,1,0] )
             
         def test_two_vertices_endpoints(self):
             dist = [[0, 1],
@@ -66,6 +76,27 @@ def make_test_case( solver ):
                                   ( 3,1,1) ])
             vs = solver(D)
             self.assertListEqual( vs, [0,2,4,6,8,9,7,5,3,1] )
+            
+        def test_long_loop( self ):
+            D = make_dist_matrix(10, 1000, 
+                                 [( 0,2,1),
+                                  ( 2,4,1),
+                                  ( 4,6,1),
+                                  ( 6,8,1),
+                                  ( 8,9,1),
+                                  ( 9,7,1),
+                                  ( 7,5,1),
+                                  ( 5,3,1),
+                                  ( 3,1,1),
+                                  ( 1,0,1)])
+            vs = solver(D, endpoints=(0,0))
+            #solution muse be on of 02468975310 or the reverse
+            if vs[1] == 2:
+                self.assertListEqual( vs, [0,2,4,6,8,9,7,5,3,1,0] )
+            elif vs[1] == 1:
+                self.assertListEqual( vs, [0,2,4,6,8,9,7,5,3,1,0][::-1] )
+            else:
+                raise ValueError("Neither of two solutions obtained!")
                            
         def test_endpoints( self ):
             """Check that endpoints are processed correctly"""
@@ -74,11 +105,11 @@ def make_test_case( solver ):
             #None means unspecified enpoint
             for start in (0,1,2, None):
                 for end in (0,1,2, None):
-                    if start == end:continue
                     vs = solver( D, endpoints=(start, end) )
-
+                    is_loop = (start is not None) and (start==end)
+                    expect_len = 4 if is_loop else 3                    
                     details = "endpoints={}, D={}, result={}".format((start, end), repr(D), repr(vs))
-                    self.assertEqual(len(vs), 3, "Must return 3 nodes when "+details)
+                    self.assertEqual(len(vs), expect_len, "Must return {} nodes when ".format(expect_len)+details)
 
                     if start is not None:
                         self.assertEqual(vs[0], start, "Must start correctly "+details)
@@ -98,11 +129,13 @@ def make_test_case( solver ):
                 #None means unspecified enpoint
                 for start in list(range(N))+[None]:
                     for end in list(range(N))+[None]:
-                        if start == end:continue
                         vs = solver( D, endpoints=(start, end) )
+                        
+                        is_loop = (start is not None) and (start==end)
+                        expect_len = N+1 if is_loop else N
 
                         details = "seed={}, endpoints={}, D={}, result={}".format(seed, (start, end), repr(D), repr(vs))
-                        self.assertEqual(len(vs), N, "Must return 3 nodes when "+details)
+                        self.assertEqual(len(vs), expect_len, "Must return {} nodes when ".format(expect_len)+details)
 
                         if start is not None:
                             self.assertEqual(vs[0], start, "Must start correctly "+details)
